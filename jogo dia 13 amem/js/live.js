@@ -31,6 +31,9 @@ const CHALLENGES = [
     { id: 'kills', text: 'Derruba 3 em 12 segundos!', time: 12, goal: 3 },
 ];
 
+const INTRO = 3.2;      // tempo do aviso no topo da tela antes de ir pro canto
+const INTRO_FLY = 0.6;  // parte final dele em que o card voa pro canto
+
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
 export class Live {
@@ -145,11 +148,13 @@ export class Live {
             if (game.level.active) this.challengeTimer -= dt;
             if (this.challengeTimer <= 0) {
                 const def = pick(CHALLENGES);
-                this.challenge = { ...def, left: def.time, count: 0 };
+                this.challenge = { ...def, left: def.time, count: 0, intro: INTRO };
                 this.chat.push({ user: pick(USERS), text: `DESAFIO: ${def.text}`, color: '#ffd700', t: 0 });
-                game.ui.narrate(`O chat desafiou: ${def.text}`);
                 game.audio.playSfx('vendor');
             }
+        } else if (c.intro > 0) {
+            // Aviso no topo da tela: o tempo do desafio só começa a correr depois dele
+            c.intro = Math.max(0, c.intro - dt);
         } else {
             c.left -= dt;
             if (c.left <= 0) {
@@ -181,20 +186,7 @@ export class Live {
         let y = 84;
         // Desafio ativo
         const c = this.challenge;
-        if (c) {
-            ctx.fillStyle = 'rgba(80,60,0,0.85)';
-            ctx.fillRect(x, y, w, 46);
-            ctx.fillStyle = '#ffd700';
-            ctx.font = 'bold 12px Arial';
-            ctx.fillText('🎯 DESAFIO DO CHAT', x + 8, y + 15);
-            ctx.fillStyle = '#fff';
-            ctx.fillText(c.text + (c.goal > 1 && c.id !== 'combo' ? `  ${c.count}/${c.goal}` : ''), x + 8, y + 31);
-            ctx.fillStyle = '#333';
-            ctx.fillRect(x + 8, y + 37, w - 16, 4);
-            ctx.fillStyle = '#ffd700';
-            ctx.fillRect(x + 8, y + 37, (w - 16) * c.left / c.time, 4);
-            y += 50;
-        }
+        if (c) y += 50; // espaço do card (ele é desenhado depois, por cima)
 
         // Mensagens do chat
         ctx.fillStyle = 'rgba(0,0,0,0.45)';
@@ -210,6 +202,60 @@ export class Live {
             ctx.fillStyle = '#fff';
             ctx.fillText(m.text, x + 10 + uw, my);
         });
+        ctx.restore();
+
+        if (c) this.drawChallenge(ctx, c, x, 84 + 74, w);
+    }
+
+    // Card do desafio: aparece grande no topo (tipo alerta de Pix) e depois voa pro canto
+    drawChallenge(ctx, c, cx, cy, cw) {
+        const ch = 46;
+        let rx = cx, ry = cy, rw = cw, rh = ch, alpha = 1;
+        if (c.intro > 0) {
+            const bw = 440, bh = 78, bx = 512 - bw / 2, by = 18;
+            const since = INTRO - c.intro;
+            if (c.intro > INTRO_FLY) {
+                // Desce do topo
+                const e = Math.min(1, since / 0.3);
+                rx = bx; rw = bw; rh = bh; ry = by - (1 - e) * (bh + by);
+                alpha = e;
+            } else {
+                // Voa pro canto
+                const e = 1 - c.intro / INTRO_FLY;
+                const s = e * e * (3 - 2 * e);
+                rx = bx + (cx - bx) * s; ry = by + (cy - by) * s;
+                rw = bw + (cw - bw) * s; rh = bh + (ch - bh) * s;
+            }
+        }
+        const big = rh > 60;
+        const pulse = c.intro > INTRO_FLY ? 0.5 + 0.5 * Math.sin((INTRO - c.intro) * 10) : 0;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.textAlign = 'left';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = big ? 12 + pulse * 10 : 0;
+        ctx.fillStyle = big ? 'rgba(60,40,0,0.92)' : 'rgba(80,60,0,0.85)';
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.shadowBlur = 0;
+        if (big) {
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(rx, ry, rw, rh);
+        }
+        ctx.fillStyle = '#ffd700';
+        ctx.font = `bold ${big ? 15 : 12}px Arial`;
+        ctx.fillText('🎯 DESAFIO DO CHAT', rx + 10, ry + (big ? 24 : 15));
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${big ? 22 : 12}px Arial`;
+        const counter = c.goal > 1 && c.id !== 'combo' ? `  ${c.count}/${c.goal}` : '';
+        ctx.fillText(c.text + counter, rx + 10, ry + (big ? 56 : 31));
+        if (!big) {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(rx + 8, ry + 37, rw - 16, 4);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(rx + 8, ry + 37, (rw - 16) * c.left / c.time, 4);
+        }
         ctx.restore();
     }
 }

@@ -378,7 +378,7 @@ export class Game {
     resolvePlayerAttack(hitbox) {
         for (const e of this.enemies.list) {
             if (!e.canBeHit(hitbox.id)) continue;
-            if (Math.abs(e.y - hitbox.y) > 22 * e.scale) continue; // mesma "faixa" de profundidade
+            if (Math.abs(e.y - hitbox.y) > (hitbox.yTol ?? 22) * e.scale) continue; // mesma "faixa" de profundidade
             if (Math.abs(e.z - hitbox.z) > 60) continue;
             if (e.x + 18 * e.scale < hitbox.x1 || e.x - 18 * e.scale > hitbox.x2) continue;
             // Barra de Ostentação aumenta o dano; Óculos Juliet dá crítico

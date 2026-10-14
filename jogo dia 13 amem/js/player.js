@@ -26,6 +26,7 @@ export class Player {
         this.facing = 1;
         this.hp = 100; this.maxHp = 100;
         this.speedX = 230; this.speedY = 150;
+        this.punchAim = 'side'; // side (lados), up ou down
         this.state = 'idle'; // idle | walk | punch | jump | hurt | down
         this.stateTime = 0;
         this.comboStep = 0;
@@ -87,7 +88,8 @@ export class Player {
         switch (this.state) {
             case 'idle':
             case 'walk':
-                if (pressed.punch) { this.startPunch(); break; }
+                // Segurando pra cima/baixo (sem andar pros lados) o soco vai pra lá
+                if (pressed.punch) { this.punchAim = dy && !dx ? (dy < 0 ? 'up' : 'down') : 'side'; this.startPunch(); break; }
                 if (pressed.special) {
                     if (this.ostentacao >= this.maxOstentacao) {
                         this.setState('special');
@@ -127,6 +129,7 @@ export class Player {
                 if (this.stateTime >= p.dur) {
                     if (this.bufferedPunch && this.comboStep < 2) {
                         this.comboStep++;
+                        this.punchAim = dy && !dx ? (dy < 0 ? 'up' : 'down') : 'side';
                         this.startPunch(true);
                     } else {
                         this.comboWindow = this.comboStep < 2 ? 0.3 : 0;
@@ -234,6 +237,14 @@ export class Player {
     }
 
     hitbox(p) {
+        if (this.state === 'punch' && this.punchAim !== 'side') {
+            // Soco pra cima/baixo: acerta a faixa de trás (fundo da sala) ou da frente
+            const vdir = this.punchAim === 'up' ? -1 : 1;
+            return {
+                id: this.attackId, x1: this.x - 30, x2: this.x + 30, y: this.y + vdir * 40, yTol: 34, z: this.z,
+                dmg: p.dmg, knock: p.knock, finisher: !!p.finisher, vdir, dir: this.facing,
+            };
+        }
         const x1 = this.facing > 0 ? this.x + 5 : this.x - p.reach;
         return {
             id: this.attackId, x1, x2: x1 + p.reach - 5, y: this.y, z: this.z,

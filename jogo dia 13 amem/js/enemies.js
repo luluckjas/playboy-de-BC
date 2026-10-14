@@ -103,14 +103,16 @@ class Enemy {
         if (this.hp <= 0 || (hit.finisher && !this.t.boss)) {
             this.facing = -hit.dir;
             this.setState('down');
-            this.vx = hit.dir * hit.knock / this.scale;
+            this.vx = hit.vdir ? 0 : hit.dir * hit.knock / this.scale;
+            this.vy = hit.vdir ? hit.vdir * hit.knock * 0.6 / this.scale : 0;
             this.vz = 260;
             if (this.hp <= 0) game.onEnemyDefeated(this);
         } else if (!this.t.heavy) {
             // Segurança tem "super armadura": golpe fraco não interrompe
             this.facing = -hit.dir;
             this.setState('hurt');
-            this.x += hit.dir * hit.knock * 0.15;
+            if (hit.vdir) this.y += hit.vdir * 12;
+            else this.x += hit.dir * hit.knock * 0.15;
         }
     }
 
@@ -244,7 +246,9 @@ class Enemy {
                 break;
             case 'down':
                 this.x += this.vx * dt;
+                this.y += (this.vy || 0) * dt;
                 this.vx *= 0.92;
+                this.vy = (this.vy || 0) * 0.92;
                 this.vz -= 1500 * dt;
                 this.z = Math.max(0, this.z + this.vz * dt);
                 if (this.stateTime > 1.0) {

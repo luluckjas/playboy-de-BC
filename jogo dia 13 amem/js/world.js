@@ -192,7 +192,7 @@ export class PropManager {
     // Golpes do jogador também acertam o cenário
     hitTest(hb, game) {
         for (const p of this.list) {
-            if (p.state !== 'idle' || Math.abs(p.y - hb.y) > 24 || hb.z > 70) continue;
+            if (p.state !== 'idle' || Math.abs(p.y - hb.y) > (hb.yTol ?? 24) || hb.z > 70) continue;
             if (p.x + p.def.w / 2 < hb.x1 || p.x - p.def.w / 2 > hb.x2) continue;
             p.hit(hb, game);
         }
