@@ -2,6 +2,7 @@
 // Aparecem na sala do tesouro, depois de matar o chefe e às vezes na lojinha.
 
 import { nextAttackId } from './player.js';
+import { SpriteRenderer } from './sprites.js';
 
 export const RELICS = {
     chinelo:   { icon: '🩴', name: 'Chinelo Voador', desc: 'O 3º soco do combo arremessa um chinelo' },
@@ -82,22 +83,8 @@ export class Caramelo {
         ctx.save();
         ctx.translate(Math.round(this.x), Math.round(this.y));
         ctx.scale(this.facing, 1);
-        const leg = Math.sin(this.run) * 3;
-        ctx.fillStyle = '#c47a2c';
-        ctx.fillRect(-14 + leg, -10, 4, 10); ctx.fillRect(-6 - leg, -10, 4, 10);
-        ctx.fillRect(6 + leg, -10, 4, 10); ctx.fillRect(12 - leg, -10, 4, 10);
-        ctx.fillStyle = '#d98b3a';
-        ctx.fillRect(-16, -22, 34, 13);                      // corpo
-        ctx.fillRect(14, -32, 14, 13);                       // cabeça
-        ctx.fillStyle = '#a0601e';
-        ctx.fillRect(14, -36, 5, 7);                         // orelha
-        ctx.fillStyle = '#111';
-        ctx.fillRect(24, -29, 3, 3);                         // olho
-        ctx.fillRect(27, -24, 3, 3);                         // focinho
-        // Rabo abanando
-        ctx.strokeStyle = '#d98b3a';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(-16, -20); ctx.lineTo(-26, -30 + Math.sin(time * 18) * 5); ctx.stroke();
+        // Renderiza o Cachorro Caramelo com sprites HD
+        SpriteRenderer.drawCaramelo(ctx, this, time);
         ctx.restore();
     }
 }

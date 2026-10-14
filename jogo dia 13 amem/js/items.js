@@ -1,4 +1,5 @@
 // Itens no chão (bonés power-up e queijo coalho) e o vendedor de queijo.
+import { SpriteRenderer } from './sprites.js';
 
 export const BONES = {
     sorte:     { name: 'da Sorte',  color: '#32ff7e', msg: 'Boné da Sorte! Chove drop, minha gente!' },
@@ -33,33 +34,8 @@ class Pickup {
         const lift = this.z > 0 ? this.z : 6 + Math.sin(time * 5 + this.x) * 3;
         ctx.save();
         ctx.translate(Math.round(this.x), Math.round(this.y - lift));
-        if (this.kind === 'pix') {
-            // Nota de dinheiro
-            ctx.rotate(Math.sin(time * 6 + this.x) * 0.3);
-            ctx.fillStyle = '#32c86e';
-            ctx.fillRect(-12, -14, 24, 12);
-            ctx.fillStyle = '#1a7a40';
-            ctx.font = 'bold 8px Arial';
-            ctx.fillText('R$', -6, -5);
-        } else if (this.kind === 'queijo') {
-            // Espetinho de queijo coalho
-            ctx.fillStyle = '#8b5a2b';
-            ctx.fillRect(-1, -4, 3, 22);
-            ctx.fillStyle = '#ffe08a';
-            ctx.fillRect(-7, -22, 15, 20);
-            ctx.fillStyle = '#c98a2e';
-            ctx.fillRect(-7, -16, 15, 2); ctx.fillRect(-7, -9, 15, 2);
-        } else {
-            // Boné com brilho
-            const c = BONES[this.kind].color;
-            ctx.fillStyle = 'rgba(255,255,255,0.25)';
-            ctx.beginPath(); ctx.arc(0, -10, 18, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = c;
-            ctx.beginPath(); ctx.arc(0, -8, 11, Math.PI, 0); ctx.fill();
-            ctx.fillRect(0, -9, 18, 4);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(-2, -16, 4, 4);
-        }
+        // Renderiza com sprites HD, brilho neon e efeitos
+        SpriteRenderer.drawPickup(ctx, this, time);
         ctx.restore();
     }
 }

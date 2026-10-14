@@ -4,28 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bonezão Rodeio: Busão Mortal em Balneário</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #1a0f2e;
+            background: radial-gradient(circle at center, #240b36 0%, #0c0014 100%);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            font-family: Arial, sans-serif;
+            font-family: 'Outfit', sans-serif;
             overflow: hidden;
+            color: #fff;
+        }
+        .arcade-frame {
+            position: relative;
+            padding: 10px;
+            background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%);
+            border-radius: 14px;
+            box-shadow: 0 0 50px rgba(255, 0, 127, 0.4), 0 0 80px rgba(0, 223, 216, 0.25);
         }
         canvas {
-            border: 4px solid #ff00ff;
-            background: linear-gradient(180deg, #0a1428 0%, #16213e 50%, #0f3460 100%);
+            border: 3px solid #110022;
+            background: #000;
             display: block;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
+            border-radius: 8px;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        .footer-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #ff3fa4;
+            text-shadow: 0 0 8px rgba(255, 63, 164, 0.6);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div class="arcade-frame">
+        <canvas id="canvas"></canvas>
+    </div>
+    <div class="footer-hint">🔥 BONEZÃO RODEIO: BC EDITION • PRESSIONE 'R' PARA ALTERNAR RTX ON / ULTRA • 'M' MÚSICA</div>
     <script type="module" src="js/main.js"></script>
 </body>
 </html>

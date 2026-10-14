@@ -8,6 +8,7 @@ import { Live } from './live.js';
 import { Shop, newProfile, profileStats, UPGRADES } from './shop.js';
 import { RELICS, RELIC_KEYS, Caramelo, drawRelicIcons } from './relics.js';
 import { UI } from './ui.js';
+import { RtxEngine } from './shaders.js';
 
 export const VIEW_W = 1024;
 export const VIEW_H = 600;
@@ -19,7 +20,7 @@ const KEYMAP = {
     arrowup: 'up', w: 'up',
     arrowdown: 'down', s: 'down',
     j: 'punch', k: 'lasso', l: 'jump', ' ': 'special',
-    enter: 'start', m: 'mute',
+    enter: 'start', m: 'mute', r: 'rtx',
     1: 'lvl1', 2: 'lvl2', 3: 'lvl3', 4: 'lvl4', 5: 'lvl5', 6: 'lvl6',
 };
 
@@ -32,6 +33,7 @@ export class Game {
         this.audio = audio;
         this.ui = new UI();
         this.shop = new Shop();
+        this.rtx = new RtxEngine(VIEW_W, VIEW_H);
         this.state = 'menu'; // menu | playing | shop | levelClear | gameOver | victory
         this.held = {};      // ações seguradas
         this.pressed = {};   // ações apertadas neste frame
@@ -140,6 +142,13 @@ export class Game {
         const dt = Math.min(0.05, (timestamp - (this.lastTime || timestamp)) / 1000);
         this.lastTime = timestamp;
         this.time += dt;
+
+        this.rtx.update(dt);
+        if (this.pressed.rtx) {
+            const m = this.rtx.toggleMode();
+            this.ui.narrate('⚡ RTX / SHADERS: ' + m.toUpperCase());
+            this.audio.playSfx('powerup');
+        }
 
         if (this.pressed.mute) this.audio.toggleMute();
 
@@ -382,6 +391,9 @@ export class Game {
             e.hurt({ ...hitbox, dmg }, this);
             this.audio.playSfx(hitbox.finisher ? 'bigHit' : 'hit');
             this.ui.addHitSpark(e.x, e.y, e.z + 50);
+            if (hitbox.finisher) {
+                this.rtx.addShockwave(e.x, e.y - e.z - 30, 160, '#00e5ff');
+            }
             // Combos longos enchem a barra mais rápido
             const hits = this.ui.registerHit();
             this.gainOstentacao(3 + Math.min(hits, 10) * 0.6 + (hitbox.finisher ? 5 : 0));
@@ -431,6 +443,7 @@ export class Game {
         p.ostentacao = 0;
         p.ostDelay = 0;
         this.shake = 0.5;
+        this.rtx.addShockwave(p.x, p.y - 40, 420, 'rgba(255, 215, 0, 0.95)');
         this.ui.camarote();
         this.audio.playSfx('camarote');
         this.ui.narrate('CAMAROTE PREMIUM! Open bar pra geral!');
@@ -527,6 +540,9 @@ export class Game {
         ctx.restore();
         drawOverlay(theme, ctx, this.time);
         this.events.drawOverlay(ctx, this, this.time);
+
+        // Aplica shaders e iluminação dinâmica RTX ON no cenário e personagens
+        this.rtx.apply(ctx, this, this.time);
 
         this.ui.drawCamarote(ctx);
         this.ui.drawHud(ctx, this.player, this.level, this.time);

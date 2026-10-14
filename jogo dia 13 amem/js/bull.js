@@ -2,6 +2,7 @@
 // e você só precisa se equilibrar apertando a seta que aparecer. Aguente 8 segundos!
 
 import { nextAttackId } from './player.js';
+import { SpriteRenderer } from './sprites.js';
 
 const RIDE_TIME = 8; // a regra do rodeio
 const ARROWS = { up: '⬆', down: '⬇', left: '⬅', right: '➡' };
@@ -164,42 +165,8 @@ export class MechanicalBull {
         const moving = this.state === 'riding' || this.state === 'thrown';
         if (moving) ctx.rotate(Math.sin(this.t * 12) * 0.12);
         ctx.scale(this.facing, 1);
-        const leg = moving ? Math.sin(this.t * 22) * 6 : 0;
-        const lift = -this.buck;
-
-        // Pernas de metal
-        ctx.fillStyle = '#5d6670';
-        ctx.fillRect(-30 + leg, -28 + lift, 8, 28);
-        ctx.fillRect(-16 - leg, -28 + lift, 8, 28);
-        ctx.fillRect(14 + leg, -28 + lift, 8, 28);
-        ctx.fillRect(26 - leg, -28 + lift, 8, 28);
-        ctx.fillStyle = '#222';
-        for (const lx of [-30, -16, 14, 26]) ctx.fillRect(lx - 1, -4, 10, 4);
-
-        // Corpo
-        ctx.fillStyle = '#4e342e';
-        ctx.beginPath(); ctx.ellipse(0, -44 + lift, 42, 20, 0, 0, Math.PI * 2); ctx.fill();
-        // Rebites e placa
-        ctx.fillStyle = '#c0c0c0';
-        for (let i = -3; i <= 3; i++) ctx.fillRect(i * 10 - 2, -56 + lift, 4, 4);
-        ctx.fillStyle = '#ffd700';
-        ctx.fillRect(-14, -46 + lift, 28, 10);
-        ctx.fillStyle = '#4e342e';
-        ctx.font = 'bold 7px Arial';
-        ctx.fillText('AGRO-3000', -13, -38 + lift);
-
-        // Cabeça com chifres e olhos vermelhos
-        ctx.fillStyle = '#3e2723';
-        ctx.fillRect(34, -62 + lift, 22, 22);
-        ctx.fillStyle = '#eee';
-        ctx.beginPath(); ctx.moveTo(38, -62 + lift); ctx.lineTo(30, -78 + lift); ctx.lineTo(43, -62 + lift); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(50, -62 + lift); ctx.lineTo(60, -78 + lift); ctx.lineTo(55, -62 + lift); ctx.fill();
-        ctx.fillStyle = Math.floor(time * 4) % 2 || moving ? '#ff1744' : '#7f0000';
-        ctx.fillRect(48, -56 + lift, 5, 4);
-        // Rabo
-        ctx.strokeStyle = '#3e2723';
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(-40, -48 + lift); ctx.quadraticCurveTo(-56, -40 + Math.sin(time * 8) * 8, -52, -28 + lift); ctx.stroke();
+        // Renderiza o Touro AGRO-3000 com sprites HD e efeitos de shader
+        SpriteRenderer.drawBull(ctx, this, time);
         ctx.restore();
 
         if (this.state === 'idle') {

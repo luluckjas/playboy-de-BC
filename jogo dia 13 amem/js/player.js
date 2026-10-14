@@ -2,6 +2,7 @@
 // Coordenadas: x = horizontal, y = profundidade (chão), z = altura do pulo.
 
 import { BONES } from './items.js';
+import { SpriteRenderer } from './sprites.js';
 
 export const GROUND_MIN = 380;
 export const GROUND_MAX = 570;
@@ -289,106 +290,53 @@ export class Player {
         // Montado no touro: sobe e balança junto
         if (this.state === 'bull') ctx.translate(0, -40 - this.rideBob);
 
-        const walking = this.state === 'walk';
-        const leg = walking ? Math.sin(this.walkCycle) * 8 : 0;
-        const bob = this.state === 'idle' ? Math.sin(time * 4) * 1.5 : 0;
-
-        // Pernas (bermuda + tênis)
-        ctx.fillStyle = '#2b6cb0';
-        ctx.fillRect(-11 + leg, -34, 9, 24);
-        ctx.fillRect(2 - leg, -34, 9, 24);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-13 + leg, -10, 13, 8);
-        ctx.fillRect(0 - leg, -10, 13, 8);
-
-        ctx.translate(0, bob);
-        // Tronco: pele + camisa aberta florida
-        ctx.fillStyle = '#e0a87a';
-        ctx.fillRect(-12, -66, 24, 34);
-        ctx.fillStyle = this.look.shirt[0];
-        ctx.fillRect(-15, -66, 9, 34);
-        ctx.fillRect(6, -66, 9, 34);
-        ctx.fillStyle = this.look.shirt[1];
-        ctx.fillRect(-13, -58, 3, 3); ctx.fillRect(9, -48, 3, 3); ctx.fillRect(-12, -42, 3, 3);
-
-        // Corrente
-        ctx.strokeStyle = this.look.chain;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, -66, 9, 0.2, Math.PI - 0.2);
-        ctx.stroke();
-
-        // Braço (estica no soco)
-        let armLen = 14;
-        if (this.state === 'punch') {
-            const p = COMBO[this.comboStep];
-            const t = this.stateTime;
-            armLen = t >= p.active[0] && t <= p.active[1] + 0.05 ? (this.comboStep === 2 ? 34 : 28) : 16;
-        }
-        if (this.state === 'jump' && this.airAttack) armLen = 30;
-        if (this.state === 'lasso') armLen = 24;
+        // Desenha o personagem com sprites em alta resolução e efeitos de iluminação
+        SpriteRenderer.drawThiago(ctx, this, time);
 
         // Aura dourada do especial
         if (this.state === 'special') {
             const r = 30 + this.stateTime * 120;
             ctx.strokeStyle = `rgba(255,215,0,${Math.max(0, 1 - this.stateTime)})`;
             ctx.lineWidth = 6;
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 18;
             ctx.beginPath();
             ctx.arc(0, -50, r, 0, Math.PI * 2);
             ctx.stroke();
-            // Braços pra cima, jogando nota pro alto
-            ctx.fillStyle = '#e0a87a';
-            ctx.fillRect(-16, -100, 7, 36);
-            ctx.fillRect(9, -100, 7, 36);
+            ctx.shadowBlur = 0;
+            // Notas de dinheiro voando ao redor
             ctx.fillStyle = '#32ff7e';
-            ctx.fillRect(-20, -112 - Math.sin(this.stateTime * 20) * 4, 14, 8);
-            ctx.fillRect(8, -112 + Math.sin(this.stateTime * 20) * 4, 14, 8);
-        } else {
-            ctx.fillStyle = '#e0a87a';
-            ctx.fillRect(4, -60, armLen, 8);
-            ctx.fillStyle = '#ffd700'; // relógio dourado
-            ctx.fillRect(armLen - 2, -61, 4, 10);
-            ctx.fillStyle = '#e0a87a';
-            ctx.fillRect(armLen + 2, -62, 8, 11);
+            ctx.fillRect(-22, -112 - Math.sin(this.stateTime * 20) * 8, 16, 9);
+            ctx.fillRect(10, -112 + Math.sin(this.stateTime * 20) * 8, 16, 9);
         }
 
-        // Cordão de ouro (laço)
+        // Cordão de ouro (laço esticado)
         if (this.state === 'lasso' && this.ropeLen > 0) {
             const tipY = this.lassoTarget ? -56 + (this.lassoTarget.y - this.y) : -56;
             const len = this.ropeLen - (this.lassoTarget ? 15 : 0);
             ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 3;
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 8;
+            ctx.lineWidth = 3.5;
             ctx.beginPath();
-            ctx.moveTo(armLen + 6, -56);
-            // Ondinha no cordão
+            ctx.moveTo(18, -56);
             for (let i = 1; i <= 10; i++) {
                 const f = i / 10;
                 const wave = this.lassoTarget ? 0 : Math.sin(f * 12 + time * 30) * 4 * (1 - f);
-                ctx.lineTo(armLen + 6 + (len - armLen) * f, -56 + (tipY + 56) * f + wave);
+                ctx.lineTo(18 + (len - 18) * f, -56 + (tipY + 56) * f + wave);
             }
             ctx.stroke();
             // Argola na ponta
             ctx.beginPath();
-            ctx.ellipse(len + 8, tipY, 10, 14, 0, 0, Math.PI * 2);
+            ctx.ellipse(len + 8, tipY, 12, 16, 0, 0, Math.PI * 2);
             ctx.stroke();
+            ctx.shadowBlur = 0;
         }
 
-        // Cabeça
-        ctx.fillStyle = '#e0a87a';
-        ctx.fillRect(-10, -88, 20, 22);
-        // Óculos escuros
-        ctx.fillStyle = '#111';
-        ctx.fillRect(-2, -82, 12, 5);
-        // Boné aba reta
-        ctx.fillStyle = this.bone ? BONES[this.bone].color : '#7a2cff';
-        ctx.fillRect(-12, -96, 24, 10);
-        ctx.fillStyle = '#00e5ff';
-        ctx.fillRect(4, -88, 18, 3);
-
         if (this.state === 'hurt') {
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 14px Arial';
-            ctx.fillText('ai!', -6, -102);
+            ctx.fillStyle = '#ff1744';
+            ctx.font = 'bold 15px Arial';
+            ctx.fillText('AI!', -10, -106);
         }
         ctx.restore();
     }

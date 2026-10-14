@@ -5,6 +5,7 @@
 //  boss   = soca de perto e usa golpes especiais (cada chefe tem os seus):
 //           fan (arremessa em leque), charge (investida), slam (pulo com onda de choque),
 //           rain (coisas caindo do céu) e summon (chama capangas)
+import { SpriteRenderer } from './sprites.js';
 
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
@@ -351,84 +352,32 @@ class Enemy {
         ctx.translate(shake, 0);
         if (charging) ctx.rotate(0.25);
         const moving = this.state === 'approach' || (charging && (this.state === 'attack' || this.stateTime > 0.4));
-        const leg = moving ? Math.sin(this.walkCycle) * 7 : 0;
 
-        // Botas e calça
-        ctx.fillStyle = L.jeans;
-        ctx.fillRect(-11 + leg, -36, 9, 26);
-        ctx.fillRect(2 - leg, -36, 9, 26);
-        ctx.fillStyle = L.suit ? '#000' : '#5a3418';
-        ctx.fillRect(-13 + leg, -14, 12, 14);
-        ctx.fillRect(1 - leg, -14, 12, 14);
-
-        // Cinto com fivelona
-        ctx.fillStyle = '#3b2010';
-        ctx.fillRect(-13, -40, 26, 5);
-        ctx.fillStyle = '#ffd700';
-        ctx.fillRect(-4, -41, 8, 7);
-
-        // Tronco
-        ctx.fillStyle = L.shirt;
-        ctx.fillRect(-13, -70, 26, 30);
-        if (L.vest) {
-            ctx.fillStyle = L.vest;
-            ctx.fillRect(-13, -70, 8, 30); ctx.fillRect(5, -70, 8, 30);
-        } else if (!L.suit) {
-            ctx.fillStyle = 'rgba(255,255,255,0.15)';
-            for (let i = 0; i < 3; i++) ctx.fillRect(-13, -66 + i * 10, 26, 3);
+        // Renderiza o inimigo ou chefe com sprites HD e efeitos de shader
+        if (this.t.boss) {
+            SpriteRenderer.drawBoss(ctx, this, time);
         } else {
-            // Terno de segurança: gravata + ponto no ouvido
-            ctx.fillStyle = '#fff'; ctx.fillRect(-3, -70, 6, 14);
-            ctx.fillStyle = '#c0392b'; ctx.fillRect(-1, -68, 3, 16);
-        }
-
-        // Braço: recua no windup, estica no ataque
-        let arm = 12, armY = -64;
-        if (this.state === 'windup') arm = 2;
-        if (this.state === 'attack' && ai === 'melee') arm = 30;
-        if (ai === 'ranged' && this.state === 'windup') { arm = 6; armY = -92; }
-        if (ai === 'ranged' && this.state === 'attack') arm = 24;
-        ctx.fillStyle = L.shirt;
-        ctx.fillRect(2, armY, arm, 8);
-        ctx.fillStyle = L.skin;
-        ctx.fillRect(arm + 1, armY - 1, 8, 10);
-        // Garrafa na mão (some quando arremessa)
-        if (L.bottle && this.state !== 'attack') {
-            ctx.fillStyle = '#2e8b57';
-            ctx.fillRect(arm + 3, armY - 14, 5, 16);
-        }
-
-        // Cabeça
-        ctx.fillStyle = L.skin;
-        ctx.fillRect(-9, -90, 18, 20);
-        ctx.fillStyle = '#111';
-        if (L.shades) ctx.fillRect(-2, -84, 12, 5);
-        else ctx.fillRect(3, -84, 3, 3);
-        if (L.mustache) { ctx.fillStyle = '#3b2010'; ctx.fillRect(0, -77, 10, 3); }
-        if (L.bandana) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.beginPath(); ctx.moveTo(-9, -72); ctx.lineTo(9, -72); ctx.lineTo(0, -62); ctx.fill();
-        }
-
-        // Chapéu
-        if (L.hat) {
-            ctx.fillStyle = L.hat;
-            ctx.fillRect(-20, -92, 40, 5);
-            ctx.fillRect(-10, -104, 20, 13);
+            SpriteRenderer.drawEnemy(ctx, this, time);
         }
 
         // Laço amarrado na cintura / estrelinhas de tontura
         if (this.state === 'pulled') {
             ctx.strokeStyle = '#ffd700';
             ctx.lineWidth = 3;
-            ctx.strokeRect(-15, -60, 30, 10);
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 8;
+            ctx.strokeRect(-16, -62, 32, 12);
+            ctx.shadowBlur = 0;
         }
         if (this.state === 'stunned') {
             ctx.fillStyle = '#ffe14d';
+            ctx.shadowColor = '#ffd700';
+            ctx.shadowBlur = 6;
             for (let i = 0; i < 3; i++) {
                 const a = time * 6 + i * 2.1;
-                ctx.fillRect(Math.cos(a) * 16 - 3, -112 + Math.sin(a) * 5, 6, 6);
+                ctx.fillRect(Math.cos(a) * 18 - 3, -114 + Math.sin(a) * 6, 6, 6);
             }
+            ctx.shadowBlur = 0;
         }
         // Poeira da investida
         if (charging && this.state === 'attack') {
@@ -436,18 +385,24 @@ class Enemy {
             for (let i = 0; i < 3; i++) ctx.fillRect(-30 - i * 12, -8 - i * 4, 10, 6);
         }
 
-        // Chefe bravo fica vermelho
+        // Chefe bravo fica vermelho incandescente
         if (this.enraged && Math.floor(time * 6) % 2 === 0) {
-            ctx.fillStyle = 'rgba(255,0,0,0.25)';
-            ctx.fillRect(-22, -106, 44, 106);
+            ctx.fillStyle = 'rgba(255,0,0,0.3)';
+            ctx.shadowColor = '#ff1744';
+            ctx.shadowBlur = 14;
+            ctx.fillRect(-24, -110, 48, 110);
+            ctx.shadowBlur = 0;
         }
         // Aviso de ataque
         if (this.state === 'windup' || (this.state === 'move' && this.stateTime < (this.enraged ? 0.4 : 0.65))) {
             ctx.scale(this.facing, 1);
-            ctx.fillStyle = '#ff3366';
-            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = '#ff1744';
+            ctx.shadowColor = '#ff1744';
+            ctx.shadowBlur = 10;
+            ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText(ai === 'charge' || this.state === 'move' ? '!!' : '!', 0, -112);
+            ctx.fillText(ai === 'charge' || this.state === 'move' ? '!!' : '!', 0, -116);
+            ctx.shadowBlur = 0;
         }
         ctx.restore();
 

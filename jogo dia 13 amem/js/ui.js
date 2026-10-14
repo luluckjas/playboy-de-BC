@@ -1,4 +1,5 @@
 import { BONES, BONE_DURATION } from './items.js';
+import { spriteLoader } from './sprites.js';
 
 // HUD, narrador de rodeio, popups de Pix e telas de menu/fim.
 
@@ -268,47 +269,67 @@ export class UI {
     }
 
     drawMenu(ctx, time) {
-        const g = ctx.createLinearGradient(0, 0, 0, 600);
-        g.addColorStop(0, '#2a0845');
-        g.addColorStop(1, '#0a0420');
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, 1024, 600);
-
-        // Grade neon retrô
-        ctx.strokeStyle = 'rgba(255,63,164,0.4)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 12; i++) {
-            const y = 380 + ((i * 20 + time * 40) % 220);
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+        const bannerImg = spriteLoader.getCanvas('banner');
+        if (bannerImg) {
+            ctx.drawImage(bannerImg, 0, 0, 1024, 600);
+            // Gradiente escuro na base para legibilidade dos comandos
+            const g = ctx.createLinearGradient(0, 320, 0, 600);
+            g.addColorStop(0, 'rgba(10, 4, 32, 0)');
+            g.addColorStop(0.6, 'rgba(10, 4, 32, 0.85)');
+            g.addColorStop(1, 'rgba(10, 4, 32, 0.98)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 320, 1024, 280);
+        } else {
+            const g = ctx.createLinearGradient(0, 0, 0, 600);
+            g.addColorStop(0, '#2a0845');
+            g.addColorStop(1, '#0a0420');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, 1024, 600);
+            // Grade neon retrô
+            ctx.strokeStyle = 'rgba(255,63,164,0.4)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 12; i++) {
+                const y = 380 + ((i * 20 + time * 40) % 220);
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1024, y); ctx.stroke();
+            }
+            // Título apenas se não tiver o banner
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 72px Arial';
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = '#7a2cff';
+            ctx.strokeText('BONEZÃO RODEIO', 512, 170);
+            ctx.fillStyle = '#ffd700';
+            ctx.fillText('BONEZÃO RODEIO', 512, 170);
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#00e5ff';
+            ctx.fillText('Busão Mortal em Balneário', 512, 215);
         }
 
         ctx.textAlign = 'center';
-        ctx.font = 'bold 72px Arial';
-        ctx.lineWidth = 8;
-        ctx.strokeStyle = '#7a2cff';
-        ctx.strokeText('BONEZÃO RODEIO', 512, 170);
+        ctx.font = 'bold 16px Arial';
         ctx.fillStyle = '#ffd700';
-        ctx.fillText('BONEZÃO RODEIO', 512, 170);
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 6;
+        ctx.fillText('💥 OS COWBOYS DO PIX TOMARAM A ORLA DE BALNEÁRIO CAMBORIÚ 💥', 512, 410);
 
-        ctx.font = 'bold 28px Arial';
-        ctx.fillStyle = '#00e5ff';
-        ctx.fillText('Busão Mortal em Balneário', 512, 215);
-
-        ctx.font = '18px Arial';
+        ctx.font = '14px Arial';
         ctx.fillStyle = '#fff';
-        ctx.fillText('Os Cowboys do Pix tomaram a orla. Só o Thiago "Cowboy" Beach pode salvar BC.', 512, 280);
-        ctx.fillStyle = '#ccc';
-        ctx.fillText('Setas/WASD mover  •  J soco (3x combo)  •  K laço  •  L pulo (+J chute aéreo)', 512, 320);
-        ctx.fillText('Bata pra encher a Ostentação  •  barra cheia: ESPAÇO = Camarote Premium', 512, 348);
-        ctx.fillText('M: liga/desliga a música  •  1 a 6: começar direto num andar', 512, 376);
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText('Explore o andar, ache a sala do chefe ☠ e pegue o busão pro próximo andar!', 512, 410);
+        ctx.fillText('🎮 CONTROLES: Setas/WASD mover  •  J soco (3x combo)  •  K laço de ouro  •  L pulo (+J voadora)', 512, 440);
+        ctx.fillStyle = '#00e5ff';
+        ctx.fillText('⚡ BARRAS: Encha a Ostentação batendo  •  ESPAÇO = Camarote Premium Especial', 512, 465);
+        ctx.fillStyle = '#ff9f1a';
+        ctx.fillText('🐂 TOURO MECÂNICO: Encoste pra montar e aperte as setas pedidas para domar o AGRO-3000!', 512, 490);
+        ctx.fillStyle = '#32ff7e';
+        ctx.fillText('✨ R: Alternar RTX ON / ULTRA / OFF  •  M: Música  •  1 a 6: Selecionar andar direto', 512, 515);
 
         if (Math.floor(time * 2) % 2 === 0) {
-            ctx.font = 'bold 32px Arial';
+            ctx.font = 'bold 30px Arial';
             ctx.fillStyle = '#ff3fa4';
-            ctx.fillText('PRESSIONE ENTER', 512, 470);
+            ctx.shadowColor = '#ff3fa4';
+            ctx.shadowBlur = 14;
+            ctx.fillText('▶ PRESSIONE ENTER PARA JOGAR ◀', 512, 560);
         }
+        ctx.shadowBlur = 0;
     }
 
     drawEnd(ctx, title, color, subtitle, hint = 'Enter para voltar ao menu') {
