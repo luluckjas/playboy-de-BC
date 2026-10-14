@@ -1,0 +1,9 @@
+{
+  "name": "bonezao-rodeio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes serve -l 8080 ."
+  }
+}

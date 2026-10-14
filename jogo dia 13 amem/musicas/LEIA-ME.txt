@@ -1,0 +1,7 @@
+Coloque aqui seus arquivos de musica (mp3) para tocar no jogo:
+
+  musica.mp3  -> toca em todas as fases
+  fase1.mp3 ... fase6.mp3  -> toca so naquela fase (tem prioridade sobre musica.mp3)
+
+Se nao tiver nenhum arquivo, toca a trilha 8-bit do jogo.
+Use so musicas que voce tem direito de ouvir, e nao publique o jogo com elas.
