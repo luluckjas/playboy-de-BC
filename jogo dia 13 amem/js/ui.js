@@ -314,9 +314,9 @@ export class UI {
 
         ctx.font = '14px Arial';
         ctx.fillStyle = '#fff';
-        ctx.fillText('🎮 CONTROLES: Setas/WASD mover  •  J soco (3x combo)  •  K laço de ouro  •  L pulo (+J voadora)', 512, 440);
+        ctx.fillText('🎮 CONTROLES: Setas/WASD mover  •  J / clique esq. soco (3x combo)  •  K / clique dir. laço de ouro  •  L / ESPAÇO pulo (+J voadora)', 512, 440);
         ctx.fillStyle = '#00e5ff';
-        ctx.fillText('⚡ BARRAS: Encha a Ostentação batendo  •  ESPAÇO = Camarote Premium Especial', 512, 465);
+        ctx.fillText('⚡ BARRAS: Encha a Ostentação batendo  •  E = Camarote Premium Especial', 512, 465);
         ctx.fillStyle = '#ff9f1a';
         ctx.fillText('🐂 TOURO MECÂNICO: Encoste pra montar e aperte as setas pedidas para domar o AGRO-3000!', 512, 490);
         ctx.fillStyle = '#32ff7e';
@@ -330,6 +330,78 @@ export class UI {
             ctx.fillText('▶ PRESSIONE ENTER PARA JOGAR ◀', 512, 560);
         }
         ctx.shadowBlur = 0;
+    }
+
+    drawConfirm(ctx, title, subtitle, time = 0) {
+        const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); };
+        ctx.fillStyle = 'rgba(10,0,25,0.72)';
+        ctx.fillRect(0, 0, 1024, 600);
+
+        const w = 600, h = 230, x = 512 - w / 2, y = 175;
+        const pulse = 0.5 + 0.5 * Math.sin(time * 4);
+        ctx.save();
+        ctx.textAlign = 'center';
+
+        // Painel com degradê e brilho neon pulsando
+        const g = ctx.createLinearGradient(0, y, 0, y + h);
+        g.addColorStop(0, '#3a1066');
+        g.addColorStop(1, '#14052e');
+        ctx.shadowColor = '#00e5ff';
+        ctx.shadowBlur = 18 + pulse * 14;
+        ctx.fillStyle = g;
+        rr(x, y, w, h, 20); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 3;
+        rr(x, y, w, h, 20); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = 1;
+        rr(x + 6, y + 6, w - 12, h - 12, 15); ctx.stroke();
+
+        // Busão balançando em cima do painel
+        ctx.save();
+        ctx.font = '44px Arial';
+        ctx.translate(512, y - 4 + Math.sin(time * 6) * 2);
+        ctx.rotate(Math.sin(time * 3) * 0.05);
+        ctx.fillText('🚌', 0, 0);
+        ctx.restore();
+
+        // Título e subtítulo
+        ctx.font = 'bold 34px Arial';
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = '#0a0220';
+        ctx.strokeText(title, 512, y + 66);
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillText(title, 512, y + 66);
+        ctx.font = '17px Arial';
+        ctx.fillStyle = '#d9c8ff';
+        ctx.fillText(subtitle, 512, y + 100);
+
+        // Botões
+        const btn = (cx, key, label, color, dark, glow) => {
+            const bw = 240, bh = 58, bx = cx - bw / 2, by = y + 130;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = glow;
+            ctx.fillStyle = dark;
+            rr(bx, by, bw, bh, 14); ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            rr(bx, by, bw, bh, 14); ctx.stroke();
+            // "Tecla" à esquerda
+            ctx.font = 'bold 14px Arial';
+            const kw = ctx.measureText(key).width + 18;
+            ctx.fillStyle = color;
+            rr(bx + 12, by + 17, kw, 24, 6); ctx.fill();
+            ctx.fillStyle = '#10002a';
+            ctx.fillText(key, bx + 12 + kw / 2, by + 34);
+            ctx.font = 'bold 20px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.fillText(label, bx + 12 + kw + (bw - 12 - kw) / 2, by + 36);
+        };
+        btn(512 - 135, 'Enter', 'SIM, BORA!', '#32ff7e', '#0d3a22', 6 + pulse * 12);
+        btn(512 + 135, 'Esc', 'AINDA NÃO', '#ff6b8a', '#401024', 6);
+        ctx.restore();
     }
 
     drawEnd(ctx, title, color, subtitle, hint = 'Enter para voltar ao menu') {

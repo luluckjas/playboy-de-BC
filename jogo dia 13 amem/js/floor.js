@@ -98,7 +98,7 @@ class ShopCounter {
 // Aparece depois do chefe: ponto de busão pro próximo andar
 class BusStop {
     constructor() { Object.assign(this, { x: 512, y: 470, w: 50, h: 30 }); }
-    touch(game) { game.nextFloor(); }
+    touch(game) { game.askNextFloor(); }
     drawShadow(ctx) {
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath(); ctx.ellipse(this.x, this.y, 40, 8, 0, 0, Math.PI * 2); ctx.fill();

@@ -7,7 +7,7 @@ export const UPGRADES = [
     { id: 'vida', name: 'Mais Vida', desc: '+20 de vida máxima', prices: [450, 750, 1100] },
     { id: 'soco', name: 'Soco de Ouro', desc: '+15% de dano em tudo', prices: [500, 800, 1200] },
     { id: 'laco', name: 'Cordão Longo', desc: '+60 de alcance no laço', prices: [400, 700, 1000] },
-    { id: 'ost', name: 'Ostentação Duradoura', desc: 'A barra cai 35% mais devagar', prices: [400, 800] },
+    { id: 'ost', name: 'Ostentação Turbinada', desc: 'A barra enche 20% mais rápido', prices: [400, 800] },
 ];
 
 export const SHIRTS = {
@@ -34,7 +34,7 @@ export function profileStats(pr) {
         maxHp: 100 + 20 * pr.up.vida,
         dmgBonus: 1 + 0.15 * pr.up.soco,
         lassoRange: 280 + 60 * pr.up.laco,
-        ostDecay: 6 * (1 - 0.35 * pr.up.ost),
+        ostGain: 1 + 0.2 * pr.up.ost,
         look: { shirt: SHIRTS[pr.shirt].colors, chain: CHAINS[pr.chain].color },
         relics: new Set(pr.relics),
     };

@@ -19,8 +19,8 @@ const KEYMAP = {
     arrowright: 'right', d: 'right',
     arrowup: 'up', w: 'up',
     arrowdown: 'down', s: 'down',
-    j: 'punch', k: 'lasso', l: 'jump', ' ': 'special',
-    enter: 'start', m: 'mute', r: 'rtx',
+    j: 'punch', k: 'lasso', l: 'jump', ' ': 'jump', e: 'special',
+    enter: 'start', escape: 'cancel', n: 'cancel', m: 'mute', r: 'rtx',
     1: 'lvl1', 2: 'lvl2', 3: 'lvl3', 4: 'lvl4', 5: 'lvl5', 6: 'lvl6',
 };
 
@@ -34,7 +34,7 @@ export class Game {
         this.ui = new UI();
         this.shop = new Shop();
         this.rtx = new RtxEngine(VIEW_W, VIEW_H);
-        this.state = 'menu'; // menu | playing | shop | levelClear | gameOver | victory
+        this.state = 'menu'; // menu | playing | shop | confirmFloor | levelClear | gameOver | victory
         this.held = {};      // ações seguradas
         this.pressed = {};   // ações apertadas neste frame
         this.lastTime = 0;
@@ -55,6 +55,22 @@ export class Game {
             const action = KEYMAP[e.key.toLowerCase()];
             if (action) this.held[action] = false;
         });
+        // Mouse: clique esquerdo soca, clique direito laça
+        const MOUSE = { 0: 'punch', 2: 'lasso' };
+        this.canvas.addEventListener('mousedown', (e) => {
+            const action = MOUSE[e.button];
+            if (!action) return;
+            e.preventDefault();
+            this.audio.resume();
+            if (!this.held[action]) this.pressed[action] = true;
+            this.held[action] = true;
+        });
+        window.addEventListener('mouseup', (e) => {
+            const action = MOUSE[e.button];
+            if (action) this.held[action] = false;
+        });
+        // Sem o menu do botão direito do navegador por cima do jogo
+        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
         window.addEventListener('blur', () => { this.held = {}; });
     }
 
@@ -154,6 +170,7 @@ export class Game {
 
         if (this.state === 'playing') this.updatePlaying(dt);
         else if (this.state === 'shop') this.shop.update(this);
+        else if (this.state === 'confirmFloor') this.updateConfirmFloor();
         else if (this.state === 'menu') {
             // 1-6 no menu pula direto pro andar (bom pra testar)
             for (let i = 1; i <= FLOOR_COUNT; i++) if (this.pressed['lvl' + i]) this.newGame(i);
@@ -364,6 +381,22 @@ export class Game {
         this.state = 'playing';
     }
 
+    // Pisou no ponto de busão: pergunta se o jogador quer mesmo subir de andar
+    askNextFloor() {
+        this.state = 'confirmFloor';
+        this.audio.playSfx('vendor');
+    }
+
+    updateConfirmFloor() {
+        if (this.pressed.start || this.pressed.punch) {
+            this.nextFloor();
+        } else if (this.pressed.cancel) {
+            // Volta pro jogo, um passo pra fora do ponto pra não perguntar de novo na hora
+            this.player.y = Math.min(GROUND_MAX, this.player.y + 60);
+            this.state = 'playing';
+        }
+    }
+
     nextFloor() {
         this.audio.playSfx('victory');
         if (this.levelNum < FLOOR_COUNT) {
@@ -408,7 +441,7 @@ export class Game {
     gainOstentacao(amount) {
         if (this.player.addOstentacao(amount)) {
             this.audio.playSfx('ostFull');
-            this.ui.narrate('Ostentação no talo! Aperta ESPAÇO!');
+            this.ui.narrate('Ostentação no talo! Aperta E!');
         }
     }
 
@@ -569,6 +602,11 @@ export class Game {
 
         if (this.state === 'gameOver') {
             this.ui.drawEnd(ctx, 'GAME OVER', '#ff3366', 'O peão caiu do touro...', 'Enter: tentar o andar de novo (mapa novo)');
+        }
+        if (this.state === 'confirmFloor') {
+            const last = this.levelNum >= FLOOR_COUNT;
+            this.ui.drawConfirm(ctx, last ? 'Encarar o chefe final?' : `Subir pro Andar ${this.levelNum + 1}?`,
+                last ? 'Depois disso não tem volta.' : `${FLOORS[this.levelNum].name} te espera. Não dá pra voltar pra este andar.`, this.time);
         }
         if (this.state === 'levelClear') {
             this.ui.drawEnd(ctx, `ANDAR ${this.levelNum} COMPLETO!`, '#00ffcc',

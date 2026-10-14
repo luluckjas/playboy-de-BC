@@ -17,6 +17,7 @@ const COMBO = [
 let attackIdCounter = 0;
 export const nextAttackId = () => ++attackIdCounter;
 
+const OST_GAIN = 0.7;     // fração da ostentação que cada golpe realmente rende
 const LASSO_OUT = 0.18;    // tempo pro laço esticar todo
 
 export class Player {
@@ -45,7 +46,7 @@ export class Player {
         // Atributos que a lojinha melhora (ver profileStats em shop.js)
         this.dmgBonus = 1;
         this.lassoRange = 280;   // alcance do cordão de ouro
-        this.ostDecay = 6;       // quanto a barra perde por segundo parada
+        this.ostGain = 1;        // multiplicador do upgrade que enche a barra mais rápido
         this.look = { shirt: ['#ff3fa4', '#ffe14d'], chain: '#ffd700' };
         this.rideBob = 0;        // balanço em cima do touro
         this.relics = new Set(); // itens colecionáveis (relics.js)
@@ -58,7 +59,7 @@ export class Player {
         this.hp = st.maxHp;
         this.dmgBonus = st.dmgBonus;
         this.lassoRange = st.lassoRange;
-        this.ostDecay = st.ostDecay;
+        this.ostGain = st.ostGain;
         this.look = st.look;
         this.relics = st.relics;
     }
@@ -78,9 +79,7 @@ export class Player {
             if (this.boneTime <= 0) this.bone = null;
         }
 
-        // Ostentação cai com o tempo se você parar de bater
-        this.ostDelay = Math.max(0, this.ostDelay - dt);
-        if (this.ostDelay === 0) this.ostentacao = Math.max(0, this.ostentacao - this.ostDecay * dt);
+        // A barra de Ostentação não cai mais com o tempo (só ao apanhar)
 
         const dx = (held.right ? 1 : 0) - (held.left ? 1 : 0);
         const dy = (held.down ? 1 : 0) - (held.up ? 1 : 0);
@@ -229,7 +228,8 @@ export class Player {
 
     addOstentacao(amount) {
         const wasFull = this.ostentacao >= this.maxOstentacao;
-        this.ostentacao = Math.min(this.maxOstentacao, this.ostentacao + amount);
+        // Enche mais devagar (70%), melhorado pelo upgrade da loja
+        this.ostentacao = Math.min(this.maxOstentacao, this.ostentacao + amount * OST_GAIN * this.ostGain);
         const full = this.ostentacao >= this.maxOstentacao;
         // Barra cheia segura mais tempo, pra dar chance de usar o especial
         this.ostDelay = full ? 4 : 1.5;
