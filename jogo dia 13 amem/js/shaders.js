@@ -171,36 +171,30 @@ export class RtxEngine {
 
     // Reflexo realista no piso molhado ou polido
     renderGroundReflections(ctx, game, time) {
+        // Só em pisos brilhantes (pista da balada, piso do busão, molhado à noite)
         const theme = game.level?.theme;
-        if (!['balada', 'praia', 'busao', 'molhes', 'avenida'].includes(theme)) return;
+        if (!['balada', 'busao', 'molhes', 'avenida'].includes(theme)) return;
 
-        const groundY = 380;
         const refCtx = this.reflectCtx;
         refCtx.clearRect(0, 0, this.w, this.h);
-
-        // Espelha os atores verticalmente no chão
-        refCtx.save();
-        refCtx.translate(0, groundY * 2);
-        refCtx.scale(1, -0.65); // Reflexo comprimido em perspectiva
 
         const actors = [game.player, ...game.enemies.list];
         if (game.pet) actors.push(game.pet);
         if (game.bull?.visible) actors.push(game.bull);
 
+        // Cada ator é espelhado em torno dos PRÓPRIOS pés (y), achatado em perspectiva
+        const s = 0.45;
         for (const a of actors) {
-            if (a.y >= groundY - 40) a.draw(refCtx, time);
+            refCtx.save();
+            refCtx.translate(0, a.y * (1 + s));
+            refCtx.scale(1, -s);
+            a.draw(refCtx, time);
+            refCtx.restore();
         }
-        refCtx.restore();
 
-        // Máscara com fade do reflexo e cor do chão
         ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        const alpha = theme === 'balada' ? 0.35 : (theme === 'praia' ? 0.22 : 0.18);
-        ctx.globalAlpha = alpha;
-
-        // Ondulação suave na água/piso
-        const wave = Math.sin(time * 4) * 2;
-        ctx.drawImage(this.reflectCanvas, wave, 0);
+        ctx.globalAlpha = theme === 'balada' ? 0.28 : 0.18;
+        ctx.drawImage(this.reflectCanvas, 0, 0);
         ctx.restore();
     }
 
@@ -211,10 +205,10 @@ export class RtxEngine {
 
         // Luz Ambiente por tema
         const theme = game.level?.theme || 'praia';
-        let ambientColor = 'rgba(25, 15, 45, 0.35)'; // Balneário Sunset
-        if (theme === 'balada') ambientColor = 'rgba(10, 0, 25, 0.65)'; // Balada Neon escuro
-        else if (theme === 'molhes') ambientColor = 'rgba(5, 10, 35, 0.55)'; // Noite nos Molhes
-        else if (theme === 'busao') ambientColor = 'rgba(30, 20, 15, 0.25)'; // Luz interior quente
+        let ambientColor = 'rgba(25, 15, 45, 0.15)'; // Balneário Sunset
+        if (theme === 'balada') ambientColor = 'rgba(10, 0, 25, 0.4)'; // Balada Neon escuro
+        else if (theme === 'molhes' || theme === 'avenida') ambientColor = 'rgba(5, 10, 35, 0.35)'; // Noite
+        else if (theme === 'busao') ambientColor = 'rgba(30, 20, 15, 0.1)'; // Luz interior quente
 
         lCtx.fillStyle = ambientColor;
         lCtx.fillRect(0, 0, this.w, this.h);
@@ -251,7 +245,7 @@ export class RtxEngine {
             g.addColorStop(0, l.color);
             g.addColorStop(1, 'transparent');
             ctx.fillStyle = g;
-            ctx.globalAlpha = Math.min(0.65, l.intensity * 0.4);
+            ctx.globalAlpha = Math.min(0.35, l.intensity * 0.25);
             ctx.beginPath();
             ctx.arc(l.x, l.y, rad, 0, Math.PI * 2);
             ctx.fill();
@@ -264,16 +258,14 @@ export class RtxEngine {
         const bCtx = this.bloomCtx;
         bCtx.clearRect(0, 0, this.bloomW, this.bloomH);
 
-        // Copia a tela principal reduzida para o canvas de bloom
+        // Copia a tela reduzida e desfocada (o desfoque é o que vira "glow")
+        bCtx.filter = 'blur(3px) brightness(1.1)';
         bCtx.drawImage(ctx.canvas, 0, 0, this.w, this.h, 0, 0, this.bloomW, this.bloomH);
+        bCtx.filter = 'none';
 
-        // Efeito de desfoque suave reutilizando escalas sucessivas
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
-        ctx.globalAlpha = this.mode === 'ultra' ? 0.42 : 0.25;
-
-        // Desenha de volta com suave ampliação criando o glow/bloom
-        ctx.drawImage(this.bloomCanvas, -2, -2, this.w + 4, this.h + 4);
+        ctx.globalAlpha = this.mode === 'ultra' ? 0.2 : 0.12;
         ctx.drawImage(this.bloomCanvas, 0, 0, this.w, this.h);
         ctx.restore();
     }
@@ -362,16 +354,16 @@ export class RtxEngine {
 
         // Moldura cyberpunk translúcida
         ctx.fillStyle = 'rgba(10, 5, 25, 0.85)';
-        ctx.fillRect(820, 568, 194, 24);
+        ctx.fillRect(820, 548, 194, 24);
         ctx.strokeStyle = badgeColor;
         ctx.lineWidth = 1.5;
-        ctx.strokeRect(820, 568, 194, 24);
+        ctx.strokeRect(820, 548, 194, 24);
 
         ctx.font = 'bold 12px Arial';
         ctx.fillStyle = badgeColor;
         ctx.shadowColor = isOn ? badgeColor : 'transparent';
         ctx.shadowBlur = isOn ? 8 : 0;
-        ctx.fillText(badgeText, 1004, 584);
+        ctx.fillText(badgeText, 1004, 564);
 
         ctx.restore();
     }

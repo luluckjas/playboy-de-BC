@@ -312,18 +312,19 @@ export class Player {
 
         // Cordão de ouro (laço esticado)
         if (this.state === 'lasso' && this.ropeLen > 0) {
-            const tipY = this.lassoTarget ? -56 + (this.lassoTarget.y - this.y) : -56;
-            const len = this.ropeLen - (this.lassoTarget ? 15 : 0);
+            const tipY = this.lassoTarget ? -60 + (this.lassoTarget.y - this.y) : -84;
+            const len = Math.max(60, this.ropeLen - (this.lassoTarget ? 15 : 0));
+            const hx = 58, hy = -86; // punho do sprite de soco
             ctx.strokeStyle = '#ffd700';
             ctx.shadowColor = '#ffd700';
             ctx.shadowBlur = 8;
             ctx.lineWidth = 3.5;
             ctx.beginPath();
-            ctx.moveTo(18, -56);
+            ctx.moveTo(hx, hy);
             for (let i = 1; i <= 10; i++) {
                 const f = i / 10;
                 const wave = this.lassoTarget ? 0 : Math.sin(f * 12 + time * 30) * 4 * (1 - f);
-                ctx.lineTo(18 + (len - 18) * f, -56 + (tipY + 56) * f + wave);
+                ctx.lineTo(hx + (len - hx) * f, hy + (tipY - hy) * f + wave);
             }
             ctx.stroke();
             // Argola na ponta
